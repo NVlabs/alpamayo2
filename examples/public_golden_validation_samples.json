@@ -1,0 +1,29 @@
+{
+  "samples": [
+    {
+      "clip_id": "003e17f1-7c44-4d82-9f32-d4cd82f6a8e8",
+      "t0_us": 2000000,
+      "note": "release parity validation sample"
+    },
+    {
+      "clip_id": "009148b9-ed55-4276-9c02-96bec29ac776",
+      "t0_us": 3802856,
+      "note": "release parity validation sample"
+    },
+    {
+      "clip_id": "00978bec-4621-40c3-9a5b-e49970a892d8",
+      "t0_us": 7333329,
+      "note": "release parity validation sample"
+    },
+    {
+      "clip_id": "00ee8960-68ca-4233-a507-e1964a1b165f",
+      "t0_us": 6433334,
+      "note": "release parity validation sample"
+    },
+    {
+      "clip_id": "0103cc09-2df6-4ad0-bd5d-955a45f6d65f",
+      "t0_us": 5999969,
+      "note": "release parity validation sample"
+    }
+  ]
+}

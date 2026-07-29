@@ -1,0 +1,29 @@
+{
+  "samples": [
+    {
+      "clip_id": "030c760c-ae38-49aa-9ad8-f5650a545d26",
+      "t0_us": 5100000,
+      "note": "default release smoke sample"
+    },
+    {
+      "clip_id": "0347d9f9-1493-4954-865d-1d8464e28501",
+      "t0_us": 5100000,
+      "note": "fixed public validation sample"
+    },
+    {
+      "clip_id": "06b483cf-6d9c-4b18-b54b-4429c80867e3",
+      "t0_us": 5100000,
+      "note": "fixed public validation sample"
+    },
+    {
+      "clip_id": "09ad74a2-a499-4355-a302-da69ff7d0a57",
+      "t0_us": 5100000,
+      "note": "fixed public validation sample"
+    },
+    {
+      "clip_id": "0a1ef808-c891-4da2-919d-c44aa3be5085",
+      "t0_us": 5100000,
+      "note": "fixed public validation sample"
+    }
+  ]
+}

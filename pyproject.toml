@@ -1,0 +1,47 @@
+[project]
+name = "alpamayo2_super"
+version = "0.1.0"
+requires-python = "==3.12.*"
+dependencies = [
+  "accelerate>=1.12.0",
+  "av>=16.0.1",
+  "einops>=0.8.1",
+  "hydra-colorlog>=1.2.0",
+  "hydra-core>=1.3.2",
+  "matplotlib>=3.10.7",
+  "mediapy>=1.2.4",
+  "numpy>=2.0.0",
+  "pandas>=2.3.3",
+  "physical-ai-av>=0.2.0",
+  "pillow>=12.0.0",
+  "scipy>=1.16.0",
+  "torch==2.8.0",
+  "torchvision>=0.23.0",
+  "transformers==4.57.1",
+  "flash-attn>=2.8.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.7,<0.10.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+  "ipykernel>=6.29.3",
+  "ipywidgets>=8.1.8",
+  "jupyterlab>=4.4.0",
+  "nbclient>=0.10.2",
+  "nbformat>=5.10.4",
+  "pre-commit>=4.5.1",
+  "pytest>=8.0.0",
+]
+
+[tool.uv]
+no-build-isolation-package = ["flash-attn"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-p", "no:cacheprovider"]
