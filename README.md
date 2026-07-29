@@ -307,15 +307,14 @@ Use the PNG and JSON together when judging an inference result: check that the c
 the driving scene described by the CoT, the predicted trajectory is plausible in BEV, and projected
 overlays agree with the road geometry when `projection_available` is true.
 
-## Tests
+## Inference Smoke Check
 
 ```bash
-pytest -q
+python -m alpamayo2_super.test_inference --help
 ```
 
-The default tests cover import surfaces, manifest parsing, dataset-loader timing, and
-visualization metadata. Full 34B inference requires GPU, model access, and PhysicalAI-AV access, so
-it is exercised through the CLI or notebook commands above.
+`test_inference.py` is a compatibility entry point for the same end-to-end inference smoke
+documented above. Running inference requires a GPU, model access, and PhysicalAI-AV access.
 
 ## Project Structure
 
@@ -352,10 +351,6 @@ alpamayo-2-super/
 |       |-- test_inference.py
 |       |-- visualization.py
 |       `-- viz_utils.py
-|-- tests/
-|   |-- test_import_surface.py
-|   |-- test_load_physical_aiavdataset.py
-|   `-- test_visualization.py
 |-- .github/ISSUE_TEMPLATE/
 |-- CONTRIBUTING.md
 |-- LICENSE
