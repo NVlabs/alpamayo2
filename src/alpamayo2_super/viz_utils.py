@@ -249,6 +249,54 @@ def _project_camera_points(
         )
 
 
+def _camera_projection_max_ray_angle(
+    calibration: dict[str, Any],
+    image_shape: tuple[int, int],
+) -> float | None:
+    """Return the largest ray angle represented by the calibrated image boundary."""
+    camera_model = calibration["camera_model"]
+    if not hasattr(camera_model, "pixel2ray"):
+        return None
+
+    height, width = image_shape
+    boundary_pixels = np.asarray(
+        [
+            [0.0, 0.0],
+            [width - 1.0, 0.0],
+            [width - 1.0, height - 1.0],
+            [0.0, height - 1.0],
+        ],
+        dtype=np.float64,
+    )
+    try:
+        boundary_rays = np.asarray(camera_model.pixel2ray(boundary_pixels), dtype=np.float64)
+    except (TypeError, ValueError):
+        return None
+    ray_norms = np.linalg.norm(boundary_rays, axis=-1)
+    if (
+        boundary_rays.shape != (4, 3)
+        or not np.isfinite(boundary_rays).all()
+        or np.any(ray_norms < 1e-9)
+    ):
+        return None
+    ray_angles = np.arccos(np.clip(boundary_rays[:, 2] / ray_norms, -1.0, 1.0))
+    return float(np.max(ray_angles))
+
+
+def _camera_points_within_projection_domain(
+    camera_xyz: np.ndarray,
+    max_ray_angle: float | None,
+) -> bool:
+    """Return whether every camera-space point lies in the calibrated angular domain."""
+    if max_ray_angle is None:
+        return True
+    point_norms = np.linalg.norm(camera_xyz, axis=-1)
+    if not np.isfinite(camera_xyz).all() or np.any(point_norms < 1e-9):
+        return False
+    point_angles = np.arccos(np.clip(camera_xyz[:, 2] / point_norms, -1.0, 1.0))
+    return bool(np.all(point_angles <= max_ray_angle + 1e-6))
+
+
 def _near_plane_intersection(start: np.ndarray, end: np.ndarray) -> np.ndarray:
     """Intersect a camera-space edge with the positive-z near plane."""
     fraction = (CAMERA_NEAR_PLANE_M - start[2]) / (end[2] - start[2])
@@ -480,6 +528,7 @@ def _draw_trajectory_ribbon(
     zorder: int,
 ) -> bool:
     """Project a ground-plane trajectory ribbon and its centerline."""
+    max_ray_angle = _camera_projection_max_ray_angle(calibration, image_shape)
     left_xyz, right_xyz = _trajectory_ribbon_edges(traj_xyz, TRAJECTORY_RIBBON_WIDTH_M)
     left_camera = _camera_coordinates(left_xyz, calibration)
     right_camera = _camera_coordinates(right_xyz, calibration)
@@ -498,6 +547,8 @@ def _draw_trajectory_ribbon(
             )
         )
         if not len(camera_quad):
+            continue
+        if not _camera_points_within_projection_domain(camera_quad, max_ray_angle):
             continue
         projected_quad = _project_camera_points(camera_quad, calibration)
         clipped_quad = _clip_polygon_to_image(projected_quad, image_shape)
@@ -522,6 +573,8 @@ def _draw_trajectory_ribbon(
             center_camera[index + 1],
         )
         if camera_segment is None:
+            continue
+        if not _camera_points_within_projection_domain(camera_segment, max_ray_angle):
             continue
         projected_segment = _project_camera_points(camera_segment, calibration)
         clipped_segment = _clip_line_to_image(
