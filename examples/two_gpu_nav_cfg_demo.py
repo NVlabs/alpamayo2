@@ -43,10 +43,8 @@ from alpamayo2_super.common.constants import PUBLIC_MODEL_ID
 os.environ.setdefault("MPLBACKEND", "Agg")
 
 DEFAULT_MODEL_ID = PUBLIC_MODEL_ID
-DEFAULT_NAV_TEXT = (
-    "Proceed forward while keeping extra clearance from construction equipment in the right lane."
-)
-DEFAULT_MANIFEST_PATH = Path(__file__).resolve().parent / "validation_samples.json"
+DEFAULT_NAV_TEXT = "Turn right in 30m"
+DEFAULT_MANIFEST_PATH = Path(__file__).resolve().parent / "nav_cfg_validation_samples.json"
 
 
 def _move_tensor_container_to_device(value: Any, device: torch.device | str) -> Any:
@@ -569,6 +567,7 @@ def run_two_gpu_nav_cfg(
     vlm, expert = _validate_cuda_devices(vlm_device, expert_device)
 
     from alpamayo2_super import helper
+    from alpamayo2_super.input_profiles import select_task_input
     from alpamayo2_super.load_physical_aiavdataset import load_physical_aiavdataset
     from alpamayo2_super.visualization import plot_inference_result
 
@@ -577,6 +576,7 @@ def run_two_gpu_nav_cfg(
         clip_id,
         t0_us=t0_us,
     )
+    data = select_task_input(data, "trajectory")
     print("Dataset loaded.")
 
     print(f"Loading model with manual placement: VLM={vlm}, expert={expert}...")

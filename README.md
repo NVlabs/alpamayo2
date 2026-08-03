@@ -183,15 +183,19 @@ CUDA_VISIBLE_DEVICES=0,1 \
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 python examples/two_gpu_nav_cfg_demo.py \
   --model-id "$ALPAMAYO2_SUPER_MODEL_ID" \
-  --manifest examples/validation_samples.json \
+  --manifest examples/nav_cfg_validation_samples.json \
   --sample-index 0 \
   --save-viz "$ALPAMAYO2_SUPER_OUTPUT_DIR/nav_cfg_sample0.png" \
   --save-json "$ALPAMAYO2_SUPER_OUTPUT_DIR/nav_cfg_sample0.json"
 ```
 
+This uses Alpamayo 1.5's navigation example clip
+`ea7bbd31-b7a5-4972-8dbd-7089e6b53de4` at `t0_us=4000000` with the instruction
+`Turn right in 30m`.
+
 The demo samples one trajectory with 10 diffusion steps by default and records the navigation text,
 CFG guidance weight, device placement, decoded CoT, trajectory metrics, and visualization metadata
-in the JSON sidecar. On the validated checkpoint, the 7-camera x 4-frame run peaked at roughly
+in the JSON sidecar. On the validated checkpoint, the 6-camera x 4-frame run peaked at roughly
 67 GiB on the VLM GPU and 71 GiB on the expert GPU. Host memory must also be sufficient because the
 demo loads the model before manually placing VLM and expert modules.
 
@@ -321,6 +325,7 @@ documented above. Running inference requires a GPU, model access, and PhysicalAI
 ```text
 alpamayo-2-super/
 |-- examples/
+|   |-- nav_cfg_validation_samples.json
 |   |-- public_golden_validation_samples.json
 |   |-- two_gpu_nav_cfg_demo.py
 |   `-- validation_samples.json

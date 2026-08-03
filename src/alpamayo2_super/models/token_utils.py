@@ -24,11 +24,6 @@ from alpamayo2_super.models.utils import SPECIAL_TOKENS
 logger = logging.getLogger(__name__)
 
 
-def to_special_token(token: str) -> str:
-    """Convert a token to a special token."""
-    return "<|" + token + "|>"
-
-
 def extract_traj_tokens(
     output_tokens: torch.Tensor,
     special_token_ids: dict[str, int],
@@ -123,34 +118,6 @@ def extract_traj_tokens(
     return traj_tokens
 
 
-def extract_between_special_tokens(decoded_batch: list[str], token: str) -> list[str]:
-    """Extract text between special tokens.
-
-    Args:
-        decoded_batch (list[str]): the data we extract from
-        token (str): the special token we are interested
-
-    Returns:
-        list: the extracted string
-    """
-    start_token = to_special_token(f"{token}_start")
-    end_token = to_special_token(f"{token}_end")
-
-    out: list[str] = []
-    apnd = out.append
-    for s in decoded_batch:
-        before_end, sep, _ = s.partition(end_token)
-        if not sep:
-            apnd("")
-            continue
-        i = before_end.rfind(start_token)
-        if i != -1:
-            apnd(before_end[i + len(start_token) :].strip())
-        else:
-            apnd(before_end.strip())
-    return out
-
-
 _META_ACTION_SPLIT_RE = re.compile(r"(?P<head>(?:Longitudinal|Lateral|Lane)\s*:)")
 
 
@@ -167,7 +134,7 @@ def split_cot_and_meta_action(text: str) -> tuple[str, str]:
 def extract_text_tokens(
     tokenizer: AutoTokenizer, output_tokens: torch.Tensor
 ) -> dict[str, list[str]]:
-    """Extract text outputs from wrapped or no-special assistant generations.
+    """Extract no-special text outputs from assistant generations.
 
     Args:
         output_tokens (torch.Tensor): The output tokens of shape [B*ns*nj, L].
@@ -186,41 +153,29 @@ def extract_text_tokens(
         return text.split(traj_future_start, 1)[0].split(im_end, 1)[0].strip()
 
     assistant_texts = [assistant_text(text) for text in decoded_batch]
-    extract_tokens = ["cot", "meta_action", "answer", "box", "cot_auto_labeling"]
-    extracted_text = {"raw_outputs": decoded_batch}
-    for token in extract_tokens:
-        extracted_text[token] = extract_between_special_tokens(assistant_texts, token)
-    extracted_text["answer"] = [
-        answer + box for answer, box in zip(extracted_text["answer"], extracted_text["box"])
-    ]
-
-    wrapped_starts = (
-        SPECIAL_TOKENS["cot_start"],
-        SPECIAL_TOKENS["meta_action_start"],
-        SPECIAL_TOKENS["answer_start"],
-        to_special_token("box_start"),
-    )
-    for idx, text in enumerate(assistant_texts):
-        if any(start in text for start in wrapped_starts):
-            continue
+    extracted_text = {
+        "raw_outputs": decoded_batch,
+        "cot": [],
+        "meta_action": [],
+        "answer": [],
+        "box": [],
+        "cot_auto_labeling": [],
+    }
+    for text in assistant_texts:
         cot, meta_action = split_cot_and_meta_action(text)
         if meta_action:
-            if not extracted_text["cot"][idx]:
-                extracted_text["cot"][idx] = cot
-            if not extracted_text["meta_action"][idx]:
-                extracted_text["meta_action"][idx] = meta_action
-            if not extracted_text["answer"][idx]:
-                extracted_text["answer"][idx] = cot
+            extracted_text["cot"].append(cot)
+            extracted_text["meta_action"].append(meta_action)
+            extracted_text["answer"].append(cot)
+            extracted_text["box"].append("")
+            extracted_text["cot_auto_labeling"].append("")
             continue
 
-        if text.lstrip().startswith("{"):
-            extracted_text["cot_auto_labeling"][idx] = text
-        if _looks_like_grounding_box_text(text):
-            extracted_text["box"][idx] = text
-        if not extracted_text["answer"][idx]:
-            extracted_text["answer"][idx] = text
-        if not extracted_text["cot"][idx]:
-            extracted_text["cot"][idx] = text
+        extracted_text["cot"].append(text)
+        extracted_text["meta_action"].append("")
+        extracted_text["answer"].append(text)
+        extracted_text["box"].append(text if _looks_like_grounding_box_text(text) else "")
+        extracted_text["cot_auto_labeling"].append(text if text.lstrip().startswith("{") else "")
     return extracted_text
 
 
