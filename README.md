@@ -272,8 +272,8 @@ camera/frame layout.
 
 ## Visualization API
 
-In case you would like to reuse our visualization methods, please check out 
-[src/alpamayo2_super/viz_utils.py](https://github.com/NVlabs/alpamayo2/blob/main/src/alpamayo2_super/viz_utils.py) 
+In case you would like to reuse our visualization methods, please check out
+[src/alpamayo2_super/viz_utils.py](https://github.com/NVlabs/alpamayo2/blob/main/src/alpamayo2_super/viz_utils.py)
 in the code for more information.
 
 ```python
@@ -350,4 +350,6 @@ alpamayo-2-super/
 
 ## License
 
-Apache License 2.0 - see [LICENSE](./LICENSE) for details.
+Source code as provided in this repository: Apache License 2.0 - see [LICENSE](./LICENSE) for details.
+
+Model weights on Huggingface [nvidia/Alpamayo2-Super](https://huggingface.co/nvidia/Alpamayo2-Super) are released under the [OpenMDW-1.1](https://openmdw.ai/license/1-1/) license.
