@@ -272,7 +272,9 @@ camera/frame layout.
 
 ## Visualization API
 
-The visualization API is importable:
+In case you would like to reuse our visualization methods, please check out 
+[src/alpamayo2_super/viz_utils.py](https://github.com/NVlabs/alpamayo2/blob/main/src/alpamayo2_super/viz_utils.py) 
+in the code for more information.
 
 ```python
 from alpamayo2_super.visualization import (
