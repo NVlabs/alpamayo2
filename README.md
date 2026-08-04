@@ -285,33 +285,6 @@ from alpamayo2_super.visualization import (
 )
 ```
 
-`plot_inference_result(...)` renders the public task-native six-camera layout used by the technical
-blog. The upper row is cross left, front wide, and cross right. The lower row is rear left, front
-tele, and rear right for driving tasks; VQA uses rear tele in the lower-center position instead.
-The camera grid is followed by a full-width BEV trajectory comparison and predicted CoC panel. It
-also renders camera trajectory overlays when PhysicalAI-AV calibration is available. Each overlay
-is a calibrated 2.0-meter-wide ground-plane corridor that approximates vehicle width, not model
-uncertainty. The NVIDIA-green prediction is drawn above dashed-magenta ground truth, with blue
-reserved for ego history. If calibration is missing,
-visualization falls back to camera frames + BEV + CoC and records `"projection_available": false`
-in the JSON sidecar.
-
-`plot_compact_inference_result(...)` renders a smaller four-camera debug layout for quick local
-inspection.
-
-`plot_meta_action_result(...)`, `plot_vqa_result(...)`, `plot_grounding_result(...)`, and
-`plot_auto_labeling_result(...)` render the default text-task notebook figures from the selected
-task profile and add full-width panels for generated meta-action fields, plain question/answer
-text, generated grounding boxes, or four-field auto-labeling JSON. The grounding helper overlays
-generated boxes on camera images when the answer contains `bbox_2d` / `bbox` / `box` JSON and
-prints the predicted coordinates in the result panel. The auto-labeling helper animates the
-complete six-camera/four-frame context input at two frames per second in a synchronized MP4. Its
-PNG poster retains a filmstrip of all four frames for static review and blog previews.
-
-Use the PNG and JSON together when judging an inference result: check that the camera frames match
-the driving scene described by the CoT, the predicted trajectory is plausible in BEV, and projected
-overlays agree with the road geometry when `projection_available` is true.
-
 ## Inference Smoke Check
 
 ```bash
