@@ -236,8 +236,8 @@ Three additional notebooks demonstrate VLM text tasks trained on Alpamayo 2 Supe
   `critical_components_analysis`, `ego_vehicle_motion_analysis`, `trajectory_analysis`, and
   `chain_of_causation`.
 - `notebooks/vqa.ipynb` performs separate VQA and grounding generations using the no-special
-  prompt format used by Alpax text eval. It writes two PNG/JSON artifact pairs: one for the
-  free-form scene answer and one for generated grounding coordinates and overlays.
+  token prompt format used by Alpax text eval. It writes two PNG/JSON artifact pairs: one for
+  the free-form scene answer and one for generated grounding coordinates and overlays.
 
 Each notebook loads the canonical seven-camera PhysicalAI-AV sample, then calls the public
 `select_task_input(...)` helper before model preparation. The fixed six-camera/four-frame profiles
