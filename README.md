@@ -143,6 +143,25 @@ Successful output includes:
 - `$ALPAMAYO2_SUPER_OUTPUT_DIR/sample0.png` and
   `$ALPAMAYO2_SUPER_OUTPUT_DIR/sample0.json`.
 
+### Optional CUDA graph acceleration
+
+Repeated trajectory inference can replay the diffusion expert with exact-shape CUDA graphs. Enable
+this after placing the model on CUDA and calling `eval()`:
+
+```python
+model.eval()
+model.enable_diffusion_expert_cuda_graph(
+    max_batch_size=1,
+    max_graphs=4,
+)
+```
+
+Set `max_batch_size` to at least `batch_size * num_traj_samples * num_traj_sets`. The first
+supported input shape is captured lazily; up to `max_graphs` exact shape signatures are retained,
+and additional signatures fall back to eager execution. Captured graphs keep static CUDA buffers,
+so this option trades additional GPU memory for lower diffusion-expert launch overhead. Inspect
+`model.diffusion_expert_cuda_graph_stats` for capture, replay, and fallback counts.
+
 To reproduce the six-camera figure shown in the Alpamayo 2 Super technical blog, use the same
 smoke path. The checked-in default sample is PhysicalAI-AV clip
 `030c760c-ae38-49aa-9ad8-f5650a545d26` at `t0_us=5100000`.

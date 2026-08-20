@@ -16,6 +16,7 @@
 """Alpamayo 2 Super Hugging Face model wrapper."""
 
 import copy
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Any
 
@@ -33,6 +34,10 @@ from alpamayo2_super.config import (
     Alpamayo2SuperConfig,
     build_alpamayo2_super_tokenizer,
     resolve_checkpoint_name_or_path,
+)
+from alpamayo2_super.models.diffusion_expert_cuda_graph import (
+    DiffusionExpertCudaGraph,
+    enable_diffusion_expert_cuda_graph,
 )
 from alpamayo2_super.models.expert import ExpertModel
 from alpamayo2_super.models.expert_utils import (
@@ -133,10 +138,33 @@ class Alpamayo2Super(PreTrainedModel):
             config.future_traj_tokenizer_cfg,
             load_weights=False,
         )
+        self._diffusion_expert_cuda_graph: DiffusionExpertCudaGraph | None = None
         if self.config.enable_expert:
             self.expert = ExpertModel._from_config(self.config.expert_config)
             if not self.config.cotrain_expert_vlm:
                 self.vlm.requires_grad_(False)
+
+    def enable_diffusion_expert_cuda_graph(
+        self,
+        *,
+        max_batch_size: int,
+        max_graphs: int = 4,
+    ) -> None:
+        """Use bounded exact CUDA graphs for inference-time expert forwards."""
+        if not self.config.enable_expert:
+            raise ValueError("Diffusion expert CUDA graphs require an expert-enabled checkpoint")
+        self._diffusion_expert_cuda_graph = enable_diffusion_expert_cuda_graph(
+            self.expert.expert,
+            max_batch_size=max_batch_size,
+            max_graphs=max_graphs,
+        )
+
+    @property
+    def diffusion_expert_cuda_graph_stats(self) -> dict[str, int] | None:
+        """Return graph capture, replay, and eager-fallback counters when enabled."""
+        if self._diffusion_expert_cuda_graph is None:
+            return None
+        return self._diffusion_expert_cuda_graph.stats
 
     def get_output_embeddings(self) -> torch.nn.Module:
         """Return the nested VLM output embeddings."""
@@ -369,13 +397,19 @@ class Alpamayo2Super(PreTrainedModel):
             return pred.view(-1, *self.expert.action_space.get_action_space_dims())
 
         diffusion_kwargs = diffusion_kwargs or {}
-        sampled_action = self.expert.diffusion.sample(
-            batch_size=b_star,
-            step_fn=step_fn,
-            device=device,
-            return_all_steps=False,
-            **diffusion_kwargs,
+        graph_context = (
+            self._diffusion_expert_cuda_graph.sampling()
+            if self._diffusion_expert_cuda_graph is not None
+            else nullcontext()
         )
+        with graph_context:
+            sampled_action = self.expert.diffusion.sample(
+                batch_size=b_star,
+                step_fn=step_fn,
+                device=device,
+                return_all_steps=False,
+                **diffusion_kwargs,
+            )
 
         hist_xyz_rep = einops.repeat(
             traj_data["ego_history_xyz"][:, -1],
