@@ -43,10 +43,11 @@ def build_alpamayo2_super_tokenizer(
 
 def resolve_checkpoint_name_or_path(config: PretrainedConfig) -> str | None:
     """Return the checkpoint path/HF id when available, otherwise the base VLM path."""
-    name_or_path = getattr(config, "_name_or_path", None)
-    if name_or_path:
-        return name_or_path
-    return getattr(config, "vlm_name_or_path", None)
+    for attr in ("_name_or_path", "vlm_name_or_path"):
+        value = getattr(config, attr, None)
+        if value:
+            return value
+    return None
 
 
 class Alpamayo2SuperConfig(PretrainedConfig):
