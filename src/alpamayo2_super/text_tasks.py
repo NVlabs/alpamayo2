@@ -425,7 +425,7 @@ def generate_text(
         )
 
     generated_tokens = sequences[:, prompt_length:]
-    extracted = extract_text_tokens(model.tokenizer, generated_tokens)
+    extracted = extract_text_tokens(model.tokenizer, generated_tokens, task=task)
     if task == "auto_labeling":
         auto_labeling_text = [
             text or cot for text, cot in zip(extracted["cot_auto_labeling"], extracted["cot"])

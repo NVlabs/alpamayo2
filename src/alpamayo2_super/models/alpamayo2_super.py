@@ -444,7 +444,7 @@ class Alpamayo2Super(PreTrainedModel):
         if not return_extra:
             return pred_xyz, pred_rot, logprob
 
-        extra = extract_text_tokens(self.tokenizer, vlm_outputs.sequences)
+        extra = extract_text_tokens(self.tokenizer, vlm_outputs.sequences, task="trajectory")
         for key in extra:
             extra[key] = np.array(extra[key]).reshape(
                 [input_ids.shape[0], num_traj_sets, num_traj_samples]

@@ -15,6 +15,7 @@
 
 import logging
 import re
+from typing import Literal
 
 import torch
 from transformers import AutoTokenizer, StoppingCriteria
@@ -132,12 +133,17 @@ def split_cot_and_meta_action(text: str) -> tuple[str, str]:
 
 
 def extract_text_tokens(
-    tokenizer: AutoTokenizer, output_tokens: torch.Tensor
+    tokenizer: AutoTokenizer,
+    output_tokens: torch.Tensor,
+    *,
+    task: Literal["trajectory", "meta_action", "vqa", "auto_labeling"] = "trajectory",
 ) -> dict[str, list[str]]:
     """Extract no-special text outputs from assistant generations.
 
     Args:
         output_tokens (torch.Tensor): The output tokens of shape [B*ns*nj, L].
+        task: Generation task. Only trajectory and meta-action outputs are split
+            at axis labels and the future-trajectory delimiter.
 
     Returns:
         dict[str, list[str]]: A dict containing raw outputs plus decoded text fields.
@@ -146,11 +152,14 @@ def extract_text_tokens(
     assistant_marker = "<|im_start|>assistant\n"
     traj_future_start = SPECIAL_TOKENS["traj_future_start"]
     im_end = "<|im_end|>"
+    has_action_components = task in ("trajectory", "meta_action")
 
     def assistant_text(text: str) -> str:
         if assistant_marker in text:
             text = text[text.rfind(assistant_marker) + len(assistant_marker) :]
-        return text.split(traj_future_start, 1)[0].split(im_end, 1)[0].strip()
+        if has_action_components:
+            text = text.split(traj_future_start, 1)[0]
+        return text.split(im_end, 1)[0].strip()
 
     assistant_texts = [assistant_text(text) for text in decoded_batch]
     extracted_text = {
@@ -162,7 +171,7 @@ def extract_text_tokens(
         "cot_auto_labeling": [],
     }
     for text in assistant_texts:
-        cot, meta_action = split_cot_and_meta_action(text)
+        cot, meta_action = split_cot_and_meta_action(text) if has_action_components else (text, "")
         if meta_action:
             extracted_text["cot"].append(cot)
             extracted_text["meta_action"].append(meta_action)
